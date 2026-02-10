@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "GEOID": "BG-001",
+        "NAMELSAD": "Block Group 1 - Oak/Elm",
+        "description": "Older residential area near downtown"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-83.003, 39.982],
+          [-83.003, 39.986],
+          [-82.999, 39.986],
+          [-82.999, 39.982],
+          [-83.003, 39.982]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "GEOID": "BG-002",
+        "NAMELSAD": "Block Group 2 - Pine/Maple",
+        "description": "Newer construction, higher values"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-82.998, 39.989],
+          [-82.998, 39.993],
+          [-82.993, 39.993],
+          [-82.993, 39.989],
+          [-82.998, 39.989]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "GEOID": "BG-003",
+        "NAMELSAD": "Block Group 3 - Birch",
+        "description": "Older multi-family area, lower values"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-82.982, 39.969],
+          [-82.982, 39.972],
+          [-82.978, 39.972],
+          [-82.978, 39.969],
+          [-82.982, 39.969]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "GEOID": "BG-004",
+        "NAMELSAD": "Block Group 4 - Cedar/Walnut",
+        "description": "Mid-range established neighborhood"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-83.013, 39.959],
+          [-83.013, 39.962],
+          [-83.009, 39.962],
+          [-83.009, 39.959],
+          [-83.013, 39.959]
+        ]]
+      }
+    }
+  ]
+}

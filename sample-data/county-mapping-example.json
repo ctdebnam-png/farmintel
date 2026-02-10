@@ -1,0 +1,30 @@
+{
+  "_comment": "Example column mapping for Franklin County, OH auditor export. Adjust field names to match your county's CSV headers.",
+  "parcels": {
+    "parcel_id": ["PARCEL_NO", "parcel_id", "PIN"],
+    "situs_address": ["SITUS_ADDR", "situs_address", "PROPERTY_ADDRESS"],
+    "city": ["SITUS_CITY", "city"],
+    "state": ["SITUS_STATE", "state"],
+    "zip": ["SITUS_ZIP", "zip"],
+    "owner_name": ["OWNER_NAME", "owner_name", "OWNER1"],
+    "mailing_address": ["MAIL_ADDR", "mailing_address"],
+    "mailing_city": ["MAIL_CITY", "mailing_city"],
+    "mailing_state": ["MAIL_STATE", "mailing_state"],
+    "mailing_zip": ["MAIL_ZIP", "mailing_zip"],
+    "land_use": ["LAND_USE_CODE", "land_use"],
+    "year_built": ["YR_BUILT", "year_built"],
+    "assessed_value": ["TOTAL_ASSESSED", "assessed_value"],
+    "last_sale_date": ["LAST_SALE_DATE", "last_sale_date", "SALE_DATE"],
+    "last_sale_price": ["LAST_SALE_PRICE", "last_sale_price", "SALE_PRICE"],
+    "lat": ["LAT", "lat", "LATITUDE", "Y"],
+    "lon": ["LON", "lon", "LONGITUDE", "X"],
+    "zone_id_manual": ["CENSUS_TRACT", "BLOCK_GROUP", "zone_id"]
+  },
+  "transfers": {
+    "parcel_id": ["PARCEL_NO", "parcel_id"],
+    "sale_date": ["SALE_DATE", "sale_date", "TRANSFER_DATE"],
+    "sale_price": ["SALE_PRICE", "sale_price", "CONSIDERATION"],
+    "deed_type": ["DEED_TYPE", "deed_type", "INSTRUMENT_TYPE"],
+    "recorded_date": ["RECORDED_DATE", "recorded_date"]
+  }
+}
