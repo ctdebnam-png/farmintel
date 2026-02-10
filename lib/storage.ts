@@ -37,5 +37,7 @@ class LocalStorage implements StorageProvider {
   }
 }
 
-// Singleton – swap implementation here when adding S3/R2 later
-export const storage: StorageProvider = new LocalStorage();
+// On Vercel, use /tmp (ephemeral but works for pipeline processing).
+// For durable storage, swap to Vercel Blob or S3.
+const baseDir = process.env.VERCEL ? '/tmp/uploads' : undefined;
+export const storage: StorageProvider = new LocalStorage(baseDir);

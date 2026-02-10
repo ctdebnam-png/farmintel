@@ -1,8 +1,16 @@
-import { Pool } from 'pg';
+import { Pool as PgPool } from 'pg';
+import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
 
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-});
+// Use Neon serverless driver on Vercel, standard pg locally
+const isServerless = !!process.env.VERCEL;
+
+let pool: any;
+
+if (isServerless) {
+  pool = new NeonPool({ connectionString: process.env.POSTGRES_URL });
+} else {
+  pool = new PgPool({ connectionString: process.env.POSTGRES_URL });
+}
 
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
   const client = await pool.connect();
