@@ -36,3 +36,10 @@ next-env.d.ts
 # uploads
 /uploads/*
 !/uploads/.gitkeep
+
+# daily digest output
+/ops/daily-digest/output/*
+!/ops/daily-digest/output/.gitkeep
+
+# secrets
+*.key

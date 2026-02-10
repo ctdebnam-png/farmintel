@@ -140,3 +140,56 @@ Geometry stored as GeoJSON in JSONB columns. Can be upgraded to PostGIS later �
 If parcels lack lat/lon coordinates:
 1. Upload a separate `parcel_id → lat,lon` CSV via the enrichment step
 2. Or include a `zone_id` / `block_group` / `tract` column in the parcels CSV for direct zone assignment without spatial join
+
+## Daily Digest
+
+An automated pipeline generates a daily "Top 50" listings digest for the Westerville, OH market and emails it as an inline summary + attached PNG.
+
+### What it does
+
+1. **Fetch** — Pulls listings from a pluggable data adapter (stub adapter included for dev/CI; swap in a real provider when available)
+2. **Compute** — Calculates market stats: median price, new listings, price changes, DOM, $/sqft, zip breakdown
+3. **Render** — Generates a responsive HTML page with stats strip + 50-card grid, then screenshots it to a retina PNG via Playwright
+4. **Send** — Emails the digest via SendGrid (HTML summary + PNG attachment)
+
+### Run locally
+
+```bash
+# Generate HTML + JSON only (no email, no PNG — fast, no dependencies)
+npm run digest:local
+
+# Generate everything including PNG (needs Playwright)
+npx playwright install chromium
+npm run digest -- --no-email
+
+# Full pipeline with email (needs SENDGRID_API_KEY)
+npm run digest
+```
+
+Output lands in `ops/daily-digest/output/` (gitignored).
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `SENDGRID_API_KEY` | SendGrid API key |
+| `DIGEST_FROM_EMAIL` | Verified sender address in SendGrid |
+| `DIGEST_TO_EMAILS` | Comma-separated recipient email addresses |
+
+### Scheduled run
+
+The GitHub Actions workflow (`.github/workflows/westerville-daily-digest.yml`) runs daily at 11:00 UTC (6:00 AM ET). Can also be triggered manually from the Actions tab with an option to skip email.
+
+### Adding a real data adapter
+
+Create a new file in `ops/daily-digest/adapters/` implementing the `ListingsAdapter` interface (see `adapters/types.ts`). Then update `selectAdapter()` in `run.ts` to use it. The interface expects normalized `ListingItem` objects — the pipeline is source-agnostic.
+
+## Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Stable default branch — always deployable |
+| `feature/*` | Feature branches — PR into main |
+| `claude/*` | Auto-generated branches from Claude Code sessions |
+
+Direct pushes to `main` are discouraged. Use pull requests.

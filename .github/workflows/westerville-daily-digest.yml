@@ -1,0 +1,55 @@
+name: Westerville Daily Digest
+
+on:
+  schedule:
+    # 11:00 UTC = 6:00 AM ET (7:00 AM EDT)
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+    inputs:
+      skip_email:
+        description: 'Skip sending email (generate only)'
+        type: boolean
+        default: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run digest pipeline
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          DIGEST_FROM_EMAIL: ${{ secrets.DIGEST_FROM_EMAIL }}
+          DIGEST_TO_EMAILS: ${{ secrets.DIGEST_TO_EMAILS }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.skip_email }}" = "true" ]; then
+            ARGS="--no-email"
+          fi
+          npx tsx ops/daily-digest/run.ts $ARGS
+
+      - name: Upload digest artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ github.run_number }}
+          path: |
+            ops/daily-digest/output/digest.json
+            ops/daily-digest/output/digest.html
+            ops/daily-digest/output/digest.png
+          retention-days: 30
+          if-no-files-found: warn

@@ -17,7 +17,9 @@
     "export:kml": "tsx scripts/export-kml.ts",
     "export:pdf": "tsx scripts/export-pdf.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "digest": "tsx ops/daily-digest/run.ts",
+    "digest:local": "tsx ops/daily-digest/run.ts --no-email --no-png"
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.5.0",
@@ -51,6 +53,7 @@
     "tailwindcss": "^3.4.13",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",
+    "playwright": "^1.48.0",
     "vitest": "^2.1.2"
   }
 }
