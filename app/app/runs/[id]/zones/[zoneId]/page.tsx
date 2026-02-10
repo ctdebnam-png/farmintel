@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/session';
 import { getRun } from '@/lib/data/runs';
 import { getZone, getZoneParcels } from '@/lib/data/zones';
+import { queryOne } from '@/lib/db';
 
 export default async function ZoneDetailPage({
   params,
@@ -17,6 +18,12 @@ export default async function ZoneDetailPage({
   if (!zone) notFound();
 
   const parcels = await getZoneParcels(run.id, params.zoneId);
+
+  // Fetch Census enrichment data if available
+  const census = await queryOne(
+    'SELECT * FROM census_data WHERE run_id = $1 AND geoid = $2',
+    [run.id, zone.zone_id]
+  );
 
   const components = (typeof zone.score_components === 'string'
     ? JSON.parse(zone.score_components)
@@ -71,6 +78,47 @@ export default async function ZoneDetailPage({
       {components.reason && (
         <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 mb-6 text-sm text-blue-800">
           {components.reason}
+        </div>
+      )}
+
+      {/* Census Data */}
+      {census && (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Census Profile (ACS 5-Year)</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div>
+              <div className="text-gray-500 text-xs">Population</div>
+              <div className="font-medium">{census.total_population?.toLocaleString() ?? '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Median Household Income</div>
+              <div className="font-medium">{census.median_household_income ? `$${Number(census.median_household_income).toLocaleString()}` : '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Median Home Value</div>
+              <div className="font-medium">{census.median_home_value ? `$${Number(census.median_home_value).toLocaleString()}` : '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Housing Units</div>
+              <div className="font-medium">{census.total_housing_units?.toLocaleString() ?? '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Owner-Occupied</div>
+              <div className="font-medium">{census.owner_occupancy_rate != null ? `${(census.owner_occupancy_rate * 100).toFixed(1)}%` : '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Vacancy Rate</div>
+              <div className="font-medium">{census.vacancy_rate != null ? `${(census.vacancy_rate * 100).toFixed(1)}%` : '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Median Year Built</div>
+              <div className="font-medium">{census.median_year_built ?? '-'}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Seniors (65+)</div>
+              <div className="font-medium">{census.senior_rate != null ? `${(census.senior_rate * 100).toFixed(1)}%` : '-'}</div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -48,7 +48,8 @@ export default async function ZonesPage({
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Zone</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500">Score</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500">Parcels</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Transfers (10y)</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">Med. Home Value</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">Owner Occ.</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Top Reason</th>
               </tr>
             </thead>
@@ -57,6 +58,9 @@ export default async function ZonesPage({
                 const components = (typeof z.score_components === 'string'
                   ? JSON.parse(z.score_components)
                   : z.score_components) as Record<string, any>;
+                const cd = (typeof (z as any).census_data === 'string'
+                  ? JSON.parse((z as any).census_data)
+                  : (z as any).census_data) as Record<string, any> | null;
                 return (
                   <tr
                     key={z.id}
@@ -80,7 +84,10 @@ export default async function ZonesPage({
                       {z.parcel_count}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-600">
-                      {z.transfer_count_10y}
+                      {cd?.median_home_value ? `$${Number(cd.median_home_value).toLocaleString()}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {cd?.owner_occupancy_rate != null ? `${(cd.owner_occupancy_rate * 100).toFixed(0)}%` : '-'}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs max-w-xs truncate">
                       {components.reason || '-'}

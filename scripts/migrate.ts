@@ -169,6 +169,56 @@ const migrations = [
       );
     `,
   },
+  {
+    name: '002_census_enrichment',
+    sql: `
+      -- Census enrichment data per zone
+      CREATE TABLE IF NOT EXISTS census_data (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        run_id UUID NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+        geoid VARCHAR(20) NOT NULL,
+        zone_name VARCHAR(255),
+        total_population INTEGER,
+        median_household_income NUMERIC(12,2),
+        median_home_value NUMERIC(14,2),
+        total_housing_units INTEGER,
+        occupied_housing_units INTEGER,
+        vacant_housing_units INTEGER,
+        owner_occupied_units INTEGER,
+        renter_occupied_units INTEGER,
+        median_year_built INTEGER,
+        median_gross_rent NUMERIC(10,2),
+        pop_65_plus INTEGER,
+        vacancy_rate REAL,
+        owner_occupancy_rate REAL,
+        senior_rate REAL,
+        fetched_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_census_data_run ON census_data(run_id);
+      CREATE INDEX IF NOT EXISTS idx_census_data_geoid ON census_data(geoid);
+
+      -- HPI (Home Price Index) snapshots per campaign
+      CREATE TABLE IF NOT EXISTS hpi_data (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        series_id VARCHAR(50),
+        metro VARCHAR(100),
+        latest_value REAL,
+        latest_date DATE,
+        yoy_change_pct REAL,
+        five_year_change_pct REAL,
+        data_points JSONB,
+        fetched_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      -- Add census_data JSONB column to zones for merged enrichment
+      ALTER TABLE zones ADD COLUMN IF NOT EXISTS census_data JSONB DEFAULT '{}';
+
+      -- Add county_fips to campaigns for auto-fetch
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS county_fips VARCHAR(5);
+    `,
+  },
 ];
 
 async function migrate() {

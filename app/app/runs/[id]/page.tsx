@@ -3,8 +3,11 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/session';
 import { getRun } from '@/lib/data/runs';
 import { listUploads } from '@/lib/data/uploads';
+import { query } from '@/lib/db';
 import { UploadForm } from '@/components/upload-form';
 import { RunPipelineButton } from '@/components/run-pipeline-button';
+import { EnrichButton } from '@/components/enrich-button';
+import { GeocodeButton } from '@/components/geocode-button';
 
 export default async function RunPage({
   params,
@@ -17,6 +20,20 @@ export default async function RunPage({
 
   const uploads = await listUploads(run.id);
   const hasParcelUpload = uploads.some((u) => u.kind === 'parcels');
+
+  // Count parcels missing coordinates
+  const missingGeoResult = await query(
+    'SELECT COUNT(*)::int as count FROM parcels WHERE run_id = $1 AND lat IS NULL AND situs_address IS NOT NULL',
+    [run.id]
+  );
+  const missingGeoCount = missingGeoResult[0]?.count ?? 0;
+
+  // Count census data records
+  const censusResult = await query(
+    'SELECT COUNT(*)::int as count FROM census_data WHERE run_id = $1',
+    [run.id]
+  );
+  const censusCount = censusResult[0]?.count ?? 0;
 
   return (
     <div className="p-6 max-w-5xl">
@@ -46,15 +63,34 @@ export default async function RunPage({
           </span>
           <span className="text-sm text-gray-500">
             {run.parcel_count ?? 0} parcels &middot; {run.zone_count ?? 0} zones
+            {censusCount > 0 && ` · ${censusCount} Census profiles`}
           </span>
         </div>
       </div>
 
+      {/* Auto-Fetch Section */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-6">
+        <h2 className="text-sm font-semibold text-blue-800 mb-3">Auto-Fetch Public Data</h2>
+        <p className="text-xs text-blue-600 mb-3">
+          Pull zone boundaries, demographics, income, and housing data from the Census Bureau.
+          Requires the campaign to have a county and state set.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <EnrichButton runId={run.id} />
+          {hasParcelUpload && missingGeoCount > 0 && (
+            <GeocodeButton runId={run.id} missingCount={missingGeoCount} />
+          )}
+        </div>
+      </div>
+
       {/* Upload Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <UploadForm runId={run.id} kind="parcels" label="Parcels CSV" accept=".csv" />
-        <UploadForm runId={run.id} kind="transfers" label="Transfers CSV" accept=".csv" />
-        <UploadForm runId={run.id} kind="boundaries" label="Boundaries GeoJSON" accept=".geojson,.json" />
+      <div className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">Upload Files (optional if using auto-fetch)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <UploadForm runId={run.id} kind="parcels" label="Parcels CSV" accept=".csv" />
+          <UploadForm runId={run.id} kind="transfers" label="Transfers CSV" accept=".csv" />
+          <UploadForm runId={run.id} kind="boundaries" label="Boundaries GeoJSON" accept=".geojson,.json" />
+        </div>
       </div>
 
       {/* Uploaded Files */}
@@ -86,14 +122,16 @@ export default async function RunPage({
       <div className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">Pipeline</h2>
         {!hasParcelUpload ? (
-          <p className="text-sm text-gray-500">Upload a parcels CSV to enable the pipeline.</p>
+          <p className="text-sm text-gray-500">
+            Upload a parcels CSV to run the full scoring pipeline, or use auto-fetch above for Census-only analysis.
+          </p>
         ) : (
           <RunPipelineButton runId={run.id} currentStatus={run.status} />
         )}
       </div>
 
       {/* Output Links */}
-      {run.status === 'complete' && (
+      {(run.status === 'complete' || (run.zone_count ?? 0) > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link
             href={`/app/runs/${run.id}/zones`}
